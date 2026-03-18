@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Flysystem\PathPrefixing;
+
+use function iterator_to_array;
 
 use League\Flysystem\ChecksumProvider;
 use League\Flysystem\Config;
@@ -8,9 +12,8 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\UnableToGeneratePublicUrl;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
 use League\Flysystem\Visibility;
-use PHPUnit\Framework\TestCase;
 
-use function iterator_to_array;
+use PHPUnit\Framework\TestCase;
 
 class PathPrefixedAdapterTest extends TestCase
 {
@@ -19,7 +22,7 @@ class PathPrefixedAdapterTest extends TestCase
         $adapter = new InMemoryFilesystemAdapter();
         $prefix = new PathPrefixedAdapter($adapter, 'foo');
 
-        $prefix->write('foo.txt', 'bla', new Config);
+        $prefix->write('foo.txt', 'bla', new Config());
         static::assertTrue($prefix->fileExists('foo.txt'));
         static::assertFalse($prefix->directoryExists('foo.txt'));
         static::assertTrue($adapter->fileExists('foo/foo.txt'));
@@ -34,7 +37,7 @@ class PathPrefixedAdapterTest extends TestCase
         static::assertSame(Visibility::PRIVATE, $prefix->visibility('foo.txt')->visibility());
         static::assertEqualsWithDelta($prefix->lastModified('foo.txt')->lastModified(), time(), 2);
 
-        $prefix->copy('foo.txt', 'bla.txt', new Config);
+        $prefix->copy('foo.txt', 'bla.txt', new Config());
         static::assertTrue($prefix->fileExists('bla.txt'));
 
         $prefix->createDirectory('dir', new Config());
@@ -83,7 +86,7 @@ class PathPrefixedAdapterTest extends TestCase
      */
     public function generating_a_public_url(): void
     {
-        $adapter = new class() extends InMemoryFilesystemAdapter implements PublicUrlGenerator {
+        $adapter = new class () extends InMemoryFilesystemAdapter implements PublicUrlGenerator {
             public function publicUrl(string $path, Config $config): string
             {
                 return 'memory://' . ltrim($path, '/');
@@ -101,7 +104,7 @@ class PathPrefixedAdapterTest extends TestCase
      */
     public function calculate_checksum_using_decorated_adapter(): void
     {
-        $adapter = new class() extends InMemoryFilesystemAdapter implements ChecksumProvider {
+        $adapter = new class () extends InMemoryFilesystemAdapter implements ChecksumProvider {
             public function checksum(string $path, Config $config): string
             {
                 return hash('md5', $this->read($path));
@@ -109,7 +112,7 @@ class PathPrefixedAdapterTest extends TestCase
         };
 
         $prefixedAdapter = new PathPrefixedAdapter($adapter, 'prefix');
-        $prefixedAdapter->write('foo.txt', 'bla', new Config);
+        $prefixedAdapter->write('foo.txt', 'bla', new Config());
 
         self::assertEquals('128ecf542a35ac5270a87dc740918404', $prefixedAdapter->checksum('foo.txt', new Config()));
     }
@@ -121,7 +124,7 @@ class PathPrefixedAdapterTest extends TestCase
     {
         $adapter = new InMemoryFilesystemAdapter();
         $prefixedAdapter = new PathPrefixedAdapter($adapter, 'prefix');
-        $prefixedAdapter->write('foo.txt', 'bla', new Config);
+        $prefixedAdapter->write('foo.txt', 'bla', new Config());
 
         self::assertEquals('128ecf542a35ac5270a87dc740918404', hash('md5', 'bla'));
         self::assertEquals('128ecf542a35ac5270a87dc740918404', $prefixedAdapter->checksum('foo.txt', new Config()));

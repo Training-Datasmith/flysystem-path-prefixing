@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Flysystem\PathPrefixing;
 
 use DateTimeInterface;
@@ -195,7 +197,7 @@ class PathPrefixedAdapter implements FilesystemAdapter, PublicUrlGenerator, Chec
 
     public function publicUrl(string $path, Config $config): string
     {
-        if ( ! $this->adapter instanceof PublicUrlGenerator) {
+        if (! $this->adapter instanceof PublicUrlGenerator) {
             throw UnableToGeneratePublicUrl::noGeneratorConfigured($path);
         }
 
@@ -213,7 +215,7 @@ class PathPrefixedAdapter implements FilesystemAdapter, PublicUrlGenerator, Chec
 
     public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string
     {
-        if ( ! $this->adapter instanceof TemporaryUrlGenerator) {
+        if (! $this->adapter instanceof TemporaryUrlGenerator) {
             throw UnableToGenerateTemporaryUrl::noGeneratorConfigured($path);
         }
 
