@@ -35,6 +35,12 @@ class PathPrefixedAdapter implements FilesystemAdapter, PublicUrlGenerator, Chec
 
     private PathPrefixer $prefix;
 
+    /**
+     * @param FilesystemAdapter $adapter the inner adapter that performs the actual storage operations
+     * @param string            $prefix  non-empty path prefix prepended to every storage path
+     *
+     * @throws \InvalidArgumentException if $prefix is an empty string
+     */
     public function __construct(private FilesystemAdapter $adapter, string $prefix)
     {
         if ($prefix === '') {
@@ -53,6 +59,7 @@ class PathPrefixedAdapter implements FilesystemAdapter, PublicUrlGenerator, Chec
         }
     }
 
+    /** @return resource */
     public function readStream(string $location)
     {
         try {
@@ -132,6 +139,7 @@ class PathPrefixedAdapter implements FilesystemAdapter, PublicUrlGenerator, Chec
         }
     }
 
+    /** @param resource $contents */
     public function writeStream(string $location, $contents, Config $config): void
     {
         try {
