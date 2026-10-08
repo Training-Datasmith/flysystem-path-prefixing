@@ -153,7 +153,7 @@ class ChecksumAndUrlTest extends TestCase
         });
 
         self::assertInstanceOf(UnableToGeneratePublicUrl::class, $exception);
-        self::assertStringContainsString('a.txt', $exception->getMessage());
+        self::assertMatchesRegularExpression('/(?<![\\/])a\\.txt/', $exception->getMessage());
         self::assertSame([], $inner->records);
     }
 
@@ -184,7 +184,7 @@ class ChecksumAndUrlTest extends TestCase
         });
 
         self::assertInstanceOf(UnableToGenerateTemporaryUrl::class, $exception);
-        self::assertStringContainsString('a.txt', $exception->getMessage());
+        self::assertMatchesRegularExpression('/(?<![\\/])a\\.txt/', $exception->getMessage());
         self::assertSame([], $inner->records);
     }
 }
