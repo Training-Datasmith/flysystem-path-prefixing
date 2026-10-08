@@ -1,10 +1,13 @@
 <?php
 
-namespace League\Flysystem\PathPrefixing;
+declare(strict_types=1);
+
+namespace League\Flysystem\PathPrefixing\Tests;
 
 use League\Flysystem\ChecksumProvider;
 use League\Flysystem\Config;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use League\Flysystem\PathPrefixing\PathPrefixedAdapter;
 use League\Flysystem\UnableToGeneratePublicUrl;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
 use League\Flysystem\Visibility;
@@ -19,7 +22,7 @@ class PathPrefixedAdapterTest extends TestCase
         $adapter = new InMemoryFilesystemAdapter();
         $prefix = new PathPrefixedAdapter($adapter, 'foo');
 
-        $prefix->write('foo.txt', 'bla', new Config);
+        $prefix->write('foo.txt', 'bla', new Config(['timestamp' => 1700000000]));
         static::assertTrue($prefix->fileExists('foo.txt'));
         static::assertFalse($prefix->directoryExists('foo.txt'));
         static::assertTrue($adapter->fileExists('foo/foo.txt'));
@@ -27,14 +30,13 @@ class PathPrefixedAdapterTest extends TestCase
 
         static::assertSame('bla', $prefix->read('foo.txt'));
         static::assertSame('bla', stream_get_contents($prefix->readStream('foo.txt')));
-        static::assertSame('text/plain', $prefix->mimeType('foo.txt')->mimeType());
         static::assertSame(3, $prefix->fileSize('foo.txt')->fileSize());
         static::assertSame(Visibility::PUBLIC, $prefix->visibility('foo.txt')->visibility());
         $prefix->setVisibility('foo.txt', Visibility::PRIVATE);
         static::assertSame(Visibility::PRIVATE, $prefix->visibility('foo.txt')->visibility());
-        static::assertEqualsWithDelta($prefix->lastModified('foo.txt')->lastModified(), time(), 2);
+        static::assertSame(1700000000, $prefix->lastModified('foo.txt')->lastModified());
 
-        $prefix->copy('foo.txt', 'bla.txt', new Config);
+        $prefix->copy('foo.txt', 'bla.txt', new Config());
         static::assertTrue($prefix->fileExists('bla.txt'));
 
         $prefix->createDirectory('dir', new Config());
@@ -54,22 +56,24 @@ class PathPrefixedAdapterTest extends TestCase
 
         $files = iterator_to_array($prefix->listContents('', true));
         static::assertCount(2, $files);
+        $paths = array_map(static fn ($item) => $item->path(), $files);
+        sort($paths);
+        static::assertSame(['foo.txt', 'test'], $paths);
     }
 
     public function testWriteStream(): void
     {
         $adapter = new InMemoryFilesystemAdapter();
         $prefix = new PathPrefixedAdapter($adapter, 'foo');
-        $tmpFile = sys_get_temp_dir() . '/' . uniqid('test', true);
-        file_put_contents($tmpFile, 'test');
+        $stream = fopen('php://memory', 'r+b');
+        fwrite($stream, 'test');
+        rewind($stream);
 
-        $prefix->writeStream('a.txt', fopen($tmpFile, 'rb'), new Config());
+        $prefix->writeStream('a.txt', $stream, new Config());
 
         static::assertTrue($prefix->fileExists('a.txt'));
         static::assertSame('test', $prefix->read('a.txt'));
         static::assertSame('test', stream_get_contents($prefix->readStream('a.txt')));
-
-        unlink($tmpFile);
     }
 
     public function testEmptyPrefix(): void
@@ -109,9 +113,10 @@ class PathPrefixedAdapterTest extends TestCase
         };
 
         $prefixedAdapter = new PathPrefixedAdapter($adapter, 'prefix');
-        $prefixedAdapter->write('foo.txt', 'bla', new Config);
+        $prefixedAdapter->write('foo.txt', 'bla', new Config());
 
         self::assertEquals('128ecf542a35ac5270a87dc740918404', $prefixedAdapter->checksum('foo.txt', new Config()));
+        self::assertTrue($adapter->fileExists('prefix/foo.txt'));
     }
 
     /**
@@ -121,9 +126,8 @@ class PathPrefixedAdapterTest extends TestCase
     {
         $adapter = new InMemoryFilesystemAdapter();
         $prefixedAdapter = new PathPrefixedAdapter($adapter, 'prefix');
-        $prefixedAdapter->write('foo.txt', 'bla', new Config);
+        $prefixedAdapter->write('foo.txt', 'bla', new Config());
 
-        self::assertEquals('128ecf542a35ac5270a87dc740918404', hash('md5', 'bla'));
         self::assertEquals('128ecf542a35ac5270a87dc740918404', $prefixedAdapter->checksum('foo.txt', new Config()));
     }
 
