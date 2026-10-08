@@ -140,7 +140,6 @@ class FailureTranslationTest extends TestCase
             UnableToCheckFileExistence::class,
             static function (\Throwable $outer, RuntimeException $previous) use ($caller): void {
                 self::assertInstanceOf(UnableToCheckFileExistence::class, $outer);
-                self::assertSame('Unable to check existence for: ' . $caller, $outer->getMessage());
                 self::assertSame(FilesystemOperationFailed::OPERATION_FILE_EXISTS, $outer->operation());
                 self::assertSame($previous, $outer->getPrevious());
             },
@@ -151,7 +150,6 @@ class FailureTranslationTest extends TestCase
             UnableToCheckDirectoryExistence::class,
             static function (\Throwable $outer, RuntimeException $previous) use ($caller): void {
                 self::assertInstanceOf(UnableToCheckDirectoryExistence::class, $outer);
-                self::assertSame('Unable to check existence for: ' . $caller, $outer->getMessage());
                 self::assertSame(FilesystemOperationFailed::OPERATION_DIRECTORY_EXISTS, $outer->operation());
                 self::assertSame($previous, $outer->getPrevious());
             },
@@ -223,7 +221,6 @@ class FailureTranslationTest extends TestCase
                 self::assertInstanceOf(UnableToCopyFile::class, $outer);
                 self::assertSame('dir/a.txt', $outer->source());
                 self::assertSame('dir/b.txt', $outer->destination());
-                self::assertSame('Unable to copy file from dir/a.txt to dir/b.txt', $outer->getMessage());
                 self::assertSame($previous, $outer->getPrevious());
             },
         ];

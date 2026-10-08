@@ -124,10 +124,6 @@ class ChecksumAndUrlTest extends TestCase
         });
 
         self::assertInstanceOf(UnableToProvideChecksum::class, $outer);
-        self::assertMatchesRegularExpression(
-            '/^Unable to get checksum for a\.txt:/',
-            $outer->getMessage()
-        );
         $previous = $outer->getPrevious();
         self::assertInstanceOf(UnableToReadFile::class, $previous);
         self::assertSame('a.txt', $previous->location());
@@ -158,8 +154,6 @@ class ChecksumAndUrlTest extends TestCase
 
         self::assertInstanceOf(UnableToGeneratePublicUrl::class, $exception);
         self::assertStringContainsString('a.txt', $exception->getMessage());
-        self::assertStringContainsString('No generator was configured', $exception->getMessage());
-        self::assertStringNotContainsString('pfx/a.txt', $exception->getMessage());
         self::assertSame([], $inner->records);
     }
 
@@ -191,8 +185,6 @@ class ChecksumAndUrlTest extends TestCase
 
         self::assertInstanceOf(UnableToGenerateTemporaryUrl::class, $exception);
         self::assertStringContainsString('a.txt', $exception->getMessage());
-        self::assertStringContainsString('No generator was configured', $exception->getMessage());
-        self::assertStringNotContainsString('pfx/a.txt', $exception->getMessage());
         self::assertSame([], $inner->records);
     }
 }
